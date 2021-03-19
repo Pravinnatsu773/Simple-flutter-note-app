@@ -76,9 +76,7 @@ class _RecycleBinPageState extends State<RecycleBinPage> {
           ),
           body: Container(
             color: Color(0xffecf0f1),
-            child: ListView(
-              children: this._notes.reversed.map(_itemToListTitle).toList(),
-            ),
+            child: checkIfNoteListIsEmpty(),
           ),
         );
       },
@@ -89,6 +87,25 @@ class _RecycleBinPageState extends State<RecycleBinPage> {
     _notes = await db.getRecycleNotes();
     setState(() {
     });
+  }
+  Widget checkIfNoteListIsEmpty(){
+    if(_notes.isNotEmpty){
+      return ListView(
+        children: this._notes.reversed.map(_itemToListTitle).toList(),
+      );
+    }else if(_notes.isEmpty){
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Recycle bin is empty!",
+              style: TextStyle(
+                fontSize: 18.0,
+              ),)
+          ],
+        ),
+      );
+    }
   }
 
   Widget _itemToListTitle(NoteModel note){

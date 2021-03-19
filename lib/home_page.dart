@@ -79,9 +79,7 @@ class _HomePageState extends State<HomePage> {
           ),
           body: Container(
             color: Color(0xffecf0f1),
-            child: ListView(
-              children: this._notes.reversed.map(_itemToListTitle).toList(),
-            ),
+            child: checkIfNoteListIsEmpty(),
           ),
           floatingActionButton: _buildFloatingActionButton(),
         );
@@ -93,6 +91,28 @@ class _HomePageState extends State<HomePage> {
     _notes = await db.getNotes();
     setState(() {
     });
+  }
+
+  Widget checkIfNoteListIsEmpty(){
+    if(_notes.isNotEmpty){
+      return ListView(
+        children: this._notes.reversed.map(_itemToListTitle).toList(),
+      );
+    }else if(_notes.isEmpty){
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset('assets/images/dead.png',width: 80,height: 80,),
+            SizedBox(height: 20,),
+            Text("Oops! Nothing to show here",
+              style: TextStyle(
+                fontSize: 18.0,
+              ),)
+          ],
+        ),
+      );
+    }
   }
 
   Widget _itemToListTitle(NoteModel note){
