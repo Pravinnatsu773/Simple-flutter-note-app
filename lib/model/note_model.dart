@@ -2,15 +2,15 @@ class NoteModel{
   int id;
   String title;
   String description;
-  String date;
+  String createdDate;
 
-  NoteModel({this.title,this.description,this.date});
+  NoteModel({this.title,this.description,this.createdDate});
 
   NoteModel.fromJsonMap(Map<String, dynamic> map){
     this.id = map['id'];
     this.title = map['title'];
     this.description = map['description'];
-    this.date = map['date'];
+    this.createdDate = map['createdDate'];
   }
 
   Map<String, dynamic> toJson(){
@@ -18,7 +18,7 @@ class NoteModel{
       'id':id,
       'title': title,
       'description':description,
-      'date':date,
+      'createdDate':createdDate,
     };
   }
 }

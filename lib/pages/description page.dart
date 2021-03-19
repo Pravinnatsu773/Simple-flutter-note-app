@@ -8,9 +8,9 @@ import 'package:simplenoteapp/model/note_model.dart';
 
 class DescriptionPage extends StatefulWidget {
   int note_id;
-  String notetitle,description;
+  String notetitle,description,createdDate;
   bool isNewNote;
-  DescriptionPage({this.note_id,this.notetitle,this.description,this.isNewNote});
+  DescriptionPage({this.note_id,this.notetitle,this.description,this.isNewNote,this.createdDate});
 
   @override
   _DescriptionPageState createState() => _DescriptionPageState();
@@ -50,8 +50,9 @@ class _DescriptionPageState extends State<DescriptionPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: Colors.deepOrangeAccent,),
+            icon: Icon(Icons.arrow_back_ios, color: Colors.white,),
             onPressed: (){
               if(askforaction){
                 popupBack();
@@ -64,20 +65,25 @@ class _DescriptionPageState extends State<DescriptionPage> {
             _saveButton(),
             _editButton(),
             IconButton(
-                icon: Icon(Icons.delete,color: Colors.black,),
+                icon: Icon(Icons.delete,color: Colors.white,),
                 onPressed: (){
                   popupDelete();
                 }
             ),
           ],
           elevation: 0.3,
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xff8e44ad),
         ),
-        body:SingleChildScrollView(
-          child: Container(
-              margin: EdgeInsets.only(top: 40),
-              padding: EdgeInsets.all(20),
-              child: _editTitleTextField()
+        body:Container(
+          color: Colors.white,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: SingleChildScrollView(
+            child: Container(
+                margin: EdgeInsets.only(top: 40),
+                padding: EdgeInsets.all(20),
+                child: _editTitleTextField(),
+            ),
           ),
         ),
       ),
@@ -87,22 +93,18 @@ class _DescriptionPageState extends State<DescriptionPage> {
   Widget _editButton(){
    if(showEditButton){
      if(widget.isNewNote){
-       return IconButton(
-           icon: Icon(Icons.edit,color: Colors.black,),
-           onPressed: (){
-             setState(() {
-               showEditButton = false;
-               _noteEditingController.text = '';
-               _descriptionEditingController.text = '';
-               editable = true;
-               newsaveButton = true;
-               askforaction = true;
-             });
-           }
-       );
+       setState(() {
+         showEditButton = false;
+         _noteEditingController.text = '';
+         _descriptionEditingController.text = '';
+         editable = true;
+         newsaveButton = true;
+         askforaction = true;
+       });
+       return SizedBox(height: 0,);
      }else if(!widget.isNewNote){
        return IconButton(
-           icon: Icon(Icons.edit,color: Colors.black,),
+           icon: Icon(Icons.edit,color: Colors.white,),
            onPressed: (){
              setState(() {
                showEditButton = false;
@@ -118,12 +120,7 @@ class _DescriptionPageState extends State<DescriptionPage> {
    }
   }
   Widget _saveButton(){
-    Color saveButtonColor;
-    if(editable){
-      saveButtonColor = Colors.deepOrangeAccent;
-    }else{
-      saveButtonColor = Colors.black;
-    }
+    Color saveButtonColor = Colors.white;
     if(!showEditButton){
       if(newsaveButton){
         return IconButton(
@@ -132,16 +129,15 @@ class _DescriptionPageState extends State<DescriptionPage> {
               setState(() {
                 widget.notetitle = _noteEditingController.text;
                 widget.description = _descriptionEditingController.text;
+                showEditButton = true;
                 editable = false;
                 newsaveButton = false;
-                saveButtonColor = Colors.black;
-                showEditButton = true;
               });
               await db.addNote(
                   NoteModel(
                       title: _noteEditingController.text,
                       description: _descriptionEditingController.text,
-                      date: getDateTime(),
+                      createdDate: getDateTime(),
                   )
               );
             }
@@ -153,10 +149,9 @@ class _DescriptionPageState extends State<DescriptionPage> {
               setState(() {
                 widget.notetitle = _noteEditingController.text;
                 widget.description = _descriptionEditingController.text;
-                editable = false;
                 newsaveButton = false;
-                saveButtonColor = Colors.black;
                 showEditButton = true;
+                editable = false;
               });
               await db.updateNote(
                   id: widget.note_id,
@@ -168,13 +163,14 @@ class _DescriptionPageState extends State<DescriptionPage> {
         );
       }
     }
-    return Text("hiden text");
+    return Text(" ");
   }
 
-  getDateTime(){
+  String getDateTime(){
     final DateTime now = DateTime.now();
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final DateFormat formatter = DateFormat('dd-MMMM-y');
     final String formatted = formatter.format(now);
+    print(formatted);
     return formatted;
   }
 
@@ -346,7 +342,7 @@ class _DescriptionPageState extends State<DescriptionPage> {
                           },
                           child: Text('Save',
                             style: TextStyle(
-                              color: Colors.deepOrangeAccent,
+                              color:  Color(0xff8e44ad),
                               fontWeight: FontWeight.w600,
                               fontSize: 18.0,
                             ),
@@ -360,7 +356,7 @@ class _DescriptionPageState extends State<DescriptionPage> {
                           },
                           child: Text('Discard',
                             style: TextStyle(
-                              color: Colors.deepOrangeAccent,
+                              color: Color(0xff8e44ad),
                               fontWeight: FontWeight.w600,
                               fontSize: 18.0,
                             ),
@@ -373,7 +369,7 @@ class _DescriptionPageState extends State<DescriptionPage> {
                           },
                           child: Text('Cancel',
                             style: TextStyle(
-                              color: Colors.deepOrangeAccent,
+                              color: Color(0xff8e44ad),
                               fontWeight: FontWeight.w600,
                               fontSize: 18.0,
                             ),
@@ -414,13 +410,13 @@ class _DescriptionPageState extends State<DescriptionPage> {
                     children: <Widget>[
                       TextButton(
                         onPressed: ()async{
-                        await db.deleteNote(widget.note_id);
+                        await db.deleteNote(widget.note_id,widget.notetitle,widget.description,widget.createdDate);
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                         },
                         child: Text('Delete',
                       style: TextStyle(
-                        color: Colors.deepOrangeAccent,
+                        color: Color(0xff8e44ad),
                         fontWeight: FontWeight.w600,
                         fontSize: 20.0,
                       ),

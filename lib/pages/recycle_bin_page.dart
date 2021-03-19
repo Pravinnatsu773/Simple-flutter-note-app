@@ -1,16 +1,14 @@
 import 'package:async/async.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:simplenoteapp/model/note_model.dart';
-import 'package:simplenoteapp/pages/description page.dart';
 import 'package:simplenoteapp/database_helper/db_provider.dart';
-import 'package:simplenoteapp/pages/recycle_bin_page.dart';
-class HomePage extends StatefulWidget {
+import 'package:simplenoteapp/home_page.dart';
+import 'package:simplenoteapp/model/note_model.dart';
+class RecycleBinPage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  _RecycleBinPageState createState() => _RecycleBinPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _RecycleBinPageState extends State<RecycleBinPage> {
   final AsyncMemoizer _memorizer = AsyncMemoizer();
 
   final db = DBProvider();
@@ -19,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   Future<bool> _asyncInit()async{
     await _memorizer.runOnce(()async{
       await db.initDb();
-      _notes = await db.getNotes();
+      _notes = await db.getRecycleNotes();
     });
     return true;
   }
@@ -41,7 +39,7 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: Color(0xff8e44ad),
-            title: Text("All notes",style: TextStyle(color: Colors.white),),
+            title: Text("Recycle bin",style: TextStyle(color: Colors.white),),
             elevation: 0,
           ),
           drawer: SafeArea(
@@ -59,7 +57,7 @@ class _HomePageState extends State<HomePage> {
                       ),),
                     leading: Icon(Icons.book,size: 25.0,),
                     onTap: (){
-                      Navigator.of(context).pop();
+                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> HomePage()));
                     },
                   ),
                   ListTile(
@@ -70,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                       ),),
                     leading: Icon(Icons.delete,size: 25.0,),
                     onTap: (){
-                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> RecycleBinPage()));
+                      Navigator.of(context).pop();
                     },
                   ),
                   Divider(height: 2.0,),
@@ -85,14 +83,13 @@ class _HomePageState extends State<HomePage> {
               children: this._notes.reversed.map(_itemToListTitle).toList(),
             ),
           ),
-          floatingActionButton: _buildFloatingActionButton(),
         );
       },
     );
   }
 
   Future<void> _updateUI()async{
-    _notes = await db.getNotes();
+    _notes = await db.getRecycleNotes();
     setState(() {
     });
   }
@@ -102,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       margin: EdgeInsets.all(5),
       padding: EdgeInsets.all(5),
       decoration: BoxDecoration(
-          color: Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
@@ -120,20 +117,19 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             SizedBox(height: 5.0,),
             Text(getSubtitle(note.description),
-            style: TextStyle(
-              fontSize: 16.0,
-            ),),
+              style: TextStyle(
+                fontSize: 16.0,
+              ),),
             SizedBox(height: 10.0,),
             Text(getSubtitle(note.createdDate??''),
-            style: TextStyle(
-              fontSize: 12.0,
-            ),),
+              style: TextStyle(
+                fontSize: 12.0,
+              ),),
           ],
         ),
         onTap: (){
-          Navigator.push(context, new MaterialPageRoute(builder: (context)=> new DescriptionPage(note_id:note.id,notetitle: note.title,description: note.description,isNewNote: false,createdDate: note.createdDate,) )).then((value){
-            _updateUI();
-          });
+          popupAsk(note);
+          _updateUI();
         },
       ),
     );
@@ -152,16 +148,68 @@ class _HomePageState extends State<HomePage> {
       return ' ';
     }
   }
-  FloatingActionButton _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: () async {
-        Navigator.push(context, new MaterialPageRoute(builder: (context)=> new DescriptionPage(notetitle: 'Title',description: 'Description',isNewNote: true,createdDate: '',) )).then((value){
-          _updateUI();
+
+  Future popupAsk(NoteModel note){
+    return showDialog(
+        context: context,
+        builder: (BuildContext context){
+          double width = MediaQuery.of(context).size.width;
+          double height = MediaQuery.of(context).size.height;
+          return AlertDialog(
+            backgroundColor: Colors.transparent,
+            contentPadding: EdgeInsets.zero,
+            elevation: 0,
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.all(8.0),
+                  width: width/1.5,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      TextButton(
+                        onPressed: ()async{
+                          db.restoreDeletedNote(note.id,note.title,note.description,note.createdDate);
+                          db.deleteFromRecycleBin(note.id);
+                          Navigator.of(context).pop();
+                          _updateUI();
+                        },
+                        child: Text('Restore',
+                          style: TextStyle(
+                            color: Color(0xff8e44ad),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ),
+                      Container(height: 50, child: VerticalDivider(color: Colors.grey)),
+                      TextButton(
+                        onPressed: ()async{
+                          db.deleteFromRecycleBin(note.id);
+                          Navigator.of(context).pop();
+                          _updateUI();
+                        },
+                        child: Text('Delete',
+                          style: TextStyle(
+                            color: Color(0xff8e44ad),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
         });
-      },
-      child: const Icon(Icons.add,size:35.0,color: Colors.white,),
-      backgroundColor: Color(0xff8e44ad),
-    );
   }
 
 }

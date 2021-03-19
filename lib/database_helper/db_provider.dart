@@ -5,8 +5,9 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBProvider{
-  static const dbFileName = 'noteapp.db';
-  static const dbTableName = "notes_tbl";
+  static const dbFileName = 'simplenoteapp.db';
+  static const dbTableName = "notes_table";
+  static const recycleTableName = "recycle_table";
   static Database _db;
   static int get _version =>1;
 
@@ -24,7 +25,14 @@ class DBProvider{
         CREATE TABLE $dbTableName(
           id INTEGER PRIMARY KEY, 
           title TEXT,
-          description TEXT
+          description TEXT,
+          createdDate TEXT)
+        ''');
+        await db.execute('''
+        CREATE TABLE $recycleTableName(
+          id INTEGER PRIMARY KEY, 
+          title TEXT,
+          description TEXT,
           createdDate TEXT)
         ''');
       },
@@ -33,6 +41,11 @@ class DBProvider{
 
   getNotes() async{
     final List<Map<String, dynamic>> jsons = await _db.rawQuery("SELECT * FROM $dbTableName");
+    print('${jsons.length} rows retrieved from db!');
+    return jsons.map((json) => NoteModel.fromJsonMap(json)).toList();
+  }
+  getRecycleNotes() async{
+    final List<Map<String, dynamic>> jsons = await _db.rawQuery("SELECT * FROM $recycleTableName");
     print('${jsons.length} rows retrieved from db!');
     return jsons.map((json) => NoteModel.fromJsonMap(json)).toList();
   }
@@ -47,7 +60,39 @@ class DBProvider{
             (
               "${note.title}",
               "${note.description}",
-              "${note.date}"
+              "${note.createdDate}"
+            )''');
+        print('Inserted note item with id=$id.');
+      },
+    );
+  }
+  Future<void> addNoteToRecycleBin(id,title,description,createdDate) async {
+    await _db.transaction(
+          (Transaction txn) async {
+        final int id = await txn.rawInsert('''
+          INSERT INTO $recycleTableName
+            (title, description,createdDate)
+          VALUES
+            (
+              "${title}",
+              "${description}",
+              "${createdDate}"
+            )''');
+        print('Inserted note item with id=$id.');
+      },
+    );
+  }
+  Future<void> restoreDeletedNote(id,title,description,createdDate) async {
+    await _db.transaction(
+          (Transaction txn) async {
+        final int id = await txn.rawInsert('''
+          INSERT INTO $dbTableName
+            (title, description,createdDate)
+          VALUES
+            (
+              "${title}",
+              "${description}",
+              "${createdDate}"
             )''');
         print('Inserted note item with id=$id.');
       },
@@ -63,9 +108,20 @@ class DBProvider{
     print('Updated $count records in db.');
   }
 
-  Future<void> deleteNote(id) async {
+
+  Future<void> deleteNote(id,title,description,createdDate) async {
+
+    addNoteToRecycleBin(id, title, description, createdDate);
     final count = await _db.rawDelete('''
         DELETE FROM $dbTableName
+        WHERE id = ${id}
+      ''');
+    print('Updated $count records in db.');
+  }
+
+  Future<void> deleteFromRecycleBin(id) async {
+    final count = await _db.rawDelete('''
+        DELETE FROM $recycleTableName
         WHERE id = ${id}
       ''');
     print('Updated $count records in db.');
