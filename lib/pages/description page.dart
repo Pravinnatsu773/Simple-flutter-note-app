@@ -132,6 +132,7 @@ class _DescriptionPageState extends State<DescriptionPage> {
                 showEditButton = true;
                 editable = false;
                 newsaveButton = false;
+                widget.isNewNote = false;
               });
               await db.addNote(
                   NoteModel(
@@ -323,7 +324,8 @@ class _DescriptionPageState extends State<DescriptionPage> {
                               await db.addNote(
                                   NoteModel(
                                       title: _noteEditingController.text,
-                                      description: _descriptionEditingController.text
+                                      description: _descriptionEditingController.text,
+                                    createdDate: getDateTime(),
                                   )
                               );
                             }else if(updateButton){
@@ -408,19 +410,14 @@ class _DescriptionPageState extends State<DescriptionPage> {
                   ),
                   child: Column(
                     children: <Widget>[
+                      Text("Move to recycle bin?"),
                       TextButton(
                         onPressed: ()async{
                         await db.deleteNote(widget.note_id,widget.notetitle,widget.description,widget.createdDate);
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                         },
-                        child: Text('Delete',
-                      style: TextStyle(
-                        color: Color(0xff8e44ad),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20.0,
-                      ),
-                      ),
+                        child: Icon(Icons.delete_outlined,size: 30.0,color: Colors.red,),
                       ),
                     ],
                   ),
