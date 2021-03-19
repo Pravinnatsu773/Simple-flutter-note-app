@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                       ),),
                     leading: Icon(Icons.delete,size: 25.0,),
                     onTap: (){
-                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> RecycleBinPage(_notes.length)));
+                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> RecycleBinPage()));
                     },
                   ),
                   Divider(height: 2.0,),
