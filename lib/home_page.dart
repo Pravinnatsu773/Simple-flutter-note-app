@@ -48,9 +48,7 @@ class _HomePageState extends State<HomePage> {
             child: Drawer(
               child: ListView(
                 children: <Widget>[
-                  ListTile(
-                    trailing: Icon(Icons.settings,size: 30.0,),
-                  ),
+                  SizedBox(height: 50.0,),
                   ListTile(
                     title: Text('All notes',
                       style: TextStyle(
@@ -70,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                       ),),
                     leading: Icon(Icons.delete,size: 25.0,),
                     onTap: (){
-                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> RecycleBinPage()));
+                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context)=> RecycleBinPage(_notes.length)));
                     },
                   ),
                   Divider(height: 2.0,),

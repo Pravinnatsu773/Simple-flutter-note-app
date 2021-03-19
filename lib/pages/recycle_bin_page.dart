@@ -10,7 +10,6 @@ class RecycleBinPage extends StatefulWidget {
 
 class _RecycleBinPageState extends State<RecycleBinPage> {
   final AsyncMemoizer _memorizer = AsyncMemoizer();
-
   final db = DBProvider();
 
   List<NoteModel> _notes = [];
@@ -46,9 +45,7 @@ class _RecycleBinPageState extends State<RecycleBinPage> {
             child: Drawer(
               child: ListView(
                 children: <Widget>[
-                  ListTile(
-                    trailing: Icon(Icons.settings,size: 30.0,),
-                  ),
+                  SizedBox(height: 50.0,),
                   ListTile(
                     title: Text('All notes',
                       style: TextStyle(
